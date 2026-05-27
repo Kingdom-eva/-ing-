@@ -50,6 +50,7 @@
 osThreadId defaultTaskHandle;
 osThreadId INS_TASKHandle;
 osThreadId try_tryHandle;
+osThreadId USB_taskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -59,6 +60,7 @@ osThreadId try_tryHandle;
 void StartDefaultTask(void const * argument);
 void INS_Task(void const * argument);
 void Try_Try(void const * argument);
+void USB_Task(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -117,6 +119,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of try_try */
   osThreadDef(try_try, Try_Try, osPriorityNormal, 0, 128);
   try_tryHandle = osThreadCreate(osThread(try_try), NULL);
+
+  /* definition and creation of USB_task */
+  osThreadDef(USB_task, USB_Task, osPriorityIdle, 0, 128);
+  USB_taskHandle = osThreadCreate(osThread(USB_task), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -178,6 +184,24 @@ __weak void Try_Try(void const * argument)
     osDelay(1);
   }
   /* USER CODE END Try_Try */
+}
+
+/* USER CODE BEGIN Header_USB_Task */
+/**
+* @brief Function implementing the USB_task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_USB_Task */
+__weak void USB_Task(void const * argument)
+{
+  /* USER CODE BEGIN USB_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END USB_Task */
 }
 
 /* Private application code --------------------------------------------------*/

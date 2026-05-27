@@ -64,6 +64,7 @@
 "angle_clc\detect_task.o"
 "angle_clc\ins_task.o"
 "angle_clc\try_try.o"
+"angle_clc\usb_task.o"
 "angle_clc\usb_device.o"
 "angle_clc\usbd_desc.o"
 "angle_clc\usbd_cdc_if.o"

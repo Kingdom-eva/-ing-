@@ -119,7 +119,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 			int16_t vel_mid;
 			vel_mid=(int16_t)dm4310.vel-0x07FF;
 			deal_dm4310_d.vel_d =vel_mid *0.01f;//rad/s
-			deal_dm4310_d.vel_d=deal_dm4310_d.vel_d*60.0f/(2*3.14159);
+			deal_dm4310_d.vel_d=deal_dm4310_d.vel_d*60.0f/(2*3.14159)/0.68f;//×ªÃ¿·Ö
             dm4310.torque  = ((rx_data[4] & 0x0F) << 8) | rx_data[5];
             dm4310.t_mos   = rx_data[6];
 			dm4310.t_rotor = rx_data[7];
@@ -136,7 +136,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 //            get_motor_measure(&motor_chassis[i], rx_data);
 //            break;
 //        }
-//		
+		
 	
         default:
         {

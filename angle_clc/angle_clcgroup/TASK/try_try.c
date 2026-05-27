@@ -10,7 +10,7 @@
 #include "bsp_can.h"
 #include "CAN_receive.h"
 #include "pid.h"
-
+#include "try_try.h"
 //extern osThreadId try_tryHandle;
 #define PI_C   3.14159
 
@@ -19,11 +19,11 @@ extern fp32 INS_angle[3];//用来获取角度 单位：
 extern motor_measure_t motor_chassis[8];//用来获取速度 单位：rpm
 
 
-float kp_s_pitch=4.0f,ki_s_pitch=0.0f,kd_s_pitch=1.0f;//电机一pid速度环
-float kp_p_pitch=4.0f,ki_p_pitch=0.00001f,kd_p_pitch=1.0f;//角度环
+float kp_s_pitch=3.0f,ki_s_pitch=0.0f,kd_s_pitch=0.0f;//电机一pid速度环
+float kp_p_pitch=3.6f,ki_p_pitch=0.28f,kd_p_pitch=0.0f;//角度环
 
-float kp_s_yaw=4.0f,ki_s_yaw=0.0f,kd_s_yaw=0.0f;//电机二pid
-float kp_p_yaw=4.0f,ki_p_yaw=0.0f,kd_p_yaw=0.0f;//角度环
+//float kp_s_yaw=4.0f,ki_s_yaw=0.0f,kd_s_yaw=0.0f;//电机二pid
+float kp_p_yaw=4.0f,ki_p_yaw=0.0f,kd_p_yaw=2.0f;//角度环
 
 float  degree_pitch,degree_yaw;
 float  speed_pitch,speed_yaw;
@@ -33,14 +33,16 @@ pid_type_def motor_s_yaw,motor_p_yaw;
 
 float degree_set_pitch,degree_set_yaw;//设定目标角度
 float speed_set_pitch,speed_set_yaw;//计算设定角度
+float speed_set_yaw_s;
 int16_t delta_pitch_torque,delta_yaw_torgue;//输出扭矩电流
 uint8_t mode;
 int16_t x1=-6000,x2=-6000,x3=-6000,x4=-6000;
 uint16_t time;
 float rd_yaw_set_degree;
+
 void Try_Try(void const * argument){		
 
-//	can_filter_init();
+	can_filter_init();
 //	DM4310_Disable();
 //	HAL_Delay(50);
 
@@ -74,8 +76,11 @@ DM4310_SetMode(3);
 	float PID_s_pitch[3]={kp_s_pitch,ki_s_pitch,kd_s_pitch};
 	float PID_p_pitch[3]={kp_p_pitch,ki_p_pitch,kd_p_pitch};
 	
-	PID_init(&motor_s_pitch,PID_POSITION,PID_s_pitch,100,300);
-	PID_init(&motor_p_pitch,PID_POSITION,PID_p_pitch,100,50);
+	PID_init(&motor_s_pitch,PID_POSITION,PID_s_pitch,400,200);
+	PID_init(&motor_p_pitch,PID_POSITION,PID_p_pitch,400,200);
+	
+//	PID_init(&motor_s_yaw,PID_POSITION,PID_s_pitch,100,200);
+	PID_init(&motor_p_yaw,PID_POSITION,PID_p_pitch,100,50);
 	
 //	DM4310_SET_zero();
 	while(1)
@@ -84,11 +89,13 @@ DM4310_SetMode(3);
 		degree_yaw=INS_angle[0]*360.0f/(2.0f*PI_C);
 		degree_pitch=INS_angle[1]*360.0f/(2.0f*PI_C);
 		
+		
 		speed_pitch=motor_chassis[1].speed_rpm;
 		rd_yaw_set_degree=degree_set_yaw*(2.0f*PI_C)/360.0f;
 		
+		
 		//speed_yaw=motor.chassis[i].speed_rpm;
-		if(mode==0)
+		if(mode==0)//失能
 		{
 
 			if(x1<0)
@@ -98,39 +105,90 @@ DM4310_SetMode(3);
 				x3+=100;
 				x4+=100;
 			}
-			CAN_CMD_BASE(&hcan1,0x200, x1,x2, x3,x4);
+			CAN_CMD_BASE(&hcan1,0x200, 0,x2, x3,x4);
 			DM4310_Disable();
 			time=0;
 			vTaskDelay(50);			
 		}
 		if(mode==1)
 		{
-			x1=-6000;
+			x1=-6500;
 			x2=-6000;
 			x3=-6000;
 			x4=-6000;
 			if(time==0) {DM4310_Enable(); time++;} // 使能 
+			if(degree_set_pitch<-15.0f)
+				degree_set_pitch=-15.0;
+			if(degree_set_pitch>20.0f)
+				degree_set_pitch=20.0f;
+			if(degree_set_yaw>90.0f)
+				degree_set_yaw=90.0f;
+			if(degree_set_yaw<-90.0f)
+				degree_set_yaw=-90.0f;
+			
+			
 			PID_calc(&motor_p_pitch,degree_pitch,degree_set_pitch);
+			PID_calc(&motor_p_yaw,degree_yaw,degree_set_yaw);
+			
 			speed_set_pitch=motor_p_pitch.out;
+			speed_set_yaw=motor_p_yaw.out*0.40f;
 			
-			if((degree_set_pitch-degree_pitch)<1.0f&&(degree_set_pitch-degree_pitch)>-1.0f)
+//			if((degree_set_pitch-degree_pitch)<0.2f&&(degree_set_pitch-degree_pitch)>-0.2f)
+//			{
+//				speed_set_pitch=0;
+//				
+//			}
+//			
+			if((degree_set_yaw-degree_yaw)<0.2f&&(degree_set_yaw-degree_yaw)>-0.2f)
 			{
-				speed_set_pitch=0;
+				speed_set_yaw=0;
 			}
-			PID_calc(&motor_s_pitch,speed_set_pitch,speed_pitch);
-			if(motor_s_pitch.out<0)
-				delta_pitch_torque=(int16_t)(motor_s_pitch.out*40)-500;
-			else if(motor_s_pitch.out>0)
-				delta_pitch_torque=(int16_t)(motor_s_pitch.out*40)+500;	
-			else
-				delta_pitch_torque=0;
 			
-//			CAN_CMD_BASE(&hcan1,0x200,x1-delta_pitch_torque,0,0,0);
+			PID_calc(&motor_s_pitch,speed_pitch,speed_set_pitch);
+//			if(motor_s_pitch.out<0)
+//				delta_pitch_torque=(int16_t)(motor_s_pitch.out*40);
+//			else if(motor_s_pitch.out>0)
+//				delta_pitch_torque=(int16_t)(motor_s_pitch.out*40);	
+//			else
+//				delta_pitch_torque=0;
+//			if((degree_set_pitch-degree_pitch)<0.2f&&(degree_set_pitch-degree_pitch)>-0.2f)
+//			{
+//				motor_s_pitch.out=0;
+//				
+//			}
+			delta_pitch_torque=small_pitch_enable(motor_s_pitch.out);
+			CAN_CMD_BASE(&hcan1,0x200,(motor_s_pitch.out*25),0,0,0);
 
 //			CAN_MT_Sendcmd(&hcan1,2U,0,2,0,0,0);
-			 CAN_Speed_SendCmd(&hcan1,2U,speed_set_yaw);
+			speed_set_yaw_s=(speed_set_yaw*2.0f*PI_C)/60.0f;//speed_set_yaw:rpm   speed_set_yaw_s:rad/s
+			if(motor_p_yaw.out<6.0f&&motor_p_yaw.out>-6.0f)
+				speed_set_yaw_s=0;
+			
+			CAN_Speed_SendCmd(&hcan1,2U,speed_set_yaw_s);
+		}
+		if(mode==2)
+		{
+			;
 		}
 		vTaskDelay(5);
 		
 	}
 }
+
+
+int16_t small_pitch_enable(float motor_s_pitchs)
+{
+	if(motor_s_pitchs>250.0f||motor_s_pitchs<-300.0f)
+		return (int16_t)(motor_s_pitchs*30);
+	else if(motor_s_pitchs<=250.0f&&motor_s_pitchs>=100.0f)
+		return (uint16_t)(motor_s_pitchs*30)*0.8f+1500.0f;
+	else if(motor_s_pitchs<=-100.0f&&motor_s_pitchs>=-250.0f)
+		return (int16_t)(motor_s_pitchs*30)*0.8f-1500.0f-2000.0f;
+	else if(motor_s_pitchs>30.0f&&motor_s_pitchs<100.0f)
+		return (int16_t)(motor_s_pitchs*30)*0.4f+2700.0f;
+	else if(motor_s_pitchs>-100.0f&&motor_s_pitchs<-30.0f)
+		return (int16_t)(motor_s_pitchs*30)*0.4f-2700.0f-2000.0f;
+	else
+		return 0;
+}
+

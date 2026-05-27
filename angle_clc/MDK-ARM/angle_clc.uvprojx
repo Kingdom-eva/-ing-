@@ -1969,6 +1969,16 @@
               <FileType>5</FileType>
               <FilePath>..\angle_clcgroup\TASK\try_try.h</FilePath>
             </File>
+            <File>
+              <FileName>USB_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\angle_clcgroup\TASK\USB_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>USB_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\angle_clcgroup\TASK\USB_task.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
