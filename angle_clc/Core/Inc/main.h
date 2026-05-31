@@ -76,6 +76,9 @@ void Error_Handler(void);
 #define DRDY_IST8310_Pin GPIO_PIN_3
 #define DRDY_IST8310_GPIO_Port GPIOG
 #define DRDY_IST8310_EXTI_IRQn EXTI3_IRQn
+#define KEY_Pin GPIO_PIN_0
+#define KEY_GPIO_Port GPIOA
+#define KEY_EXTI_IRQn EXTI0_IRQn
 #define CS1_ACCEL_Pin GPIO_PIN_4
 #define CS1_ACCEL_GPIO_Port GPIOA
 #define INT1_ACCEL_Pin GPIO_PIN_4

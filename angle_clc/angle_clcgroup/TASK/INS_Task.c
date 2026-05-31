@@ -160,9 +160,10 @@ static fp32 accel_fliter_1[3] = {0.0f, 0.0f, 0.0f};
 static fp32 accel_fliter_2[3] = {0.0f, 0.0f, 0.0f};
 static fp32 accel_fliter_3[3] = {0.0f, 0.0f, 0.0f};
 static const fp32 fliter_num[3] = {1.929454039488895f, -0.93178349823448126f, 0.002329458745586203f};
-
-
-
+//***************
+extern uint8_t exit_flag;
+extern uint8_t rising_falling_flag;
+extern uint8_t mode;
 
 static fp32 INS_gyro[3] = {0.0f, 0.0f, 0.0f};
 fp32 INS_accel[3] = {0.0f, 0.0f, 0.0f};
@@ -173,6 +174,7 @@ fp32 INS_angle_deg[3] = {0.0f, 0.0f, 0.0f};
 
 uint8_t check;
 uint8_t cnt;
+
 
 
 /**
@@ -228,9 +230,9 @@ void INS_Task(void const *pvParameters)
 
     imu_start_dma_flag = 1;
 		
-	bmi088_offset_data.gyro[0] =0.00334029272;
+	bmi088_offset_data.gyro[0] =0.00682941684;
 	bmi088_offset_data.gyro[1] =-0.000945597596;
-	bmi088_offset_data.gyro[2] =-0.00180596765;
+	bmi088_offset_data.gyro[2] =-0.0016053454;
 //mpu_offset_clc();
     
     while (1)
@@ -569,7 +571,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         }
 
     }
-
+	
+    if(GPIO_Pin == KEY_Pin)
+    {
+        if(exit_flag == 0)
+        {
+            exit_flag = 1;
+            rising_falling_flag = HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin);
+        }
+    }
 
 }
 
