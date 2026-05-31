@@ -57,4 +57,4 @@ angle_clc/usb_task.o: ..\angle_clcgroup\TASK\USB_task.c \
   ..\Middlewares\ST\STM32_USB_Device_Library\Core\Inc\usbd_core.h \
   ..\Middlewares\ST\STM32_USB_Device_Library\Core\Inc\usbd_ctlreq.h \
   ..\angle_clcgroup\TASK\try_try.h ..\angle_clcgroup\TASK\INS_Task.h \
-  ..\angle_clcgroup\Drvs\bmi088driver.h
+  ..\angle_clcgroup\Drvs\bmi088driver.h ..\angle_clcgroup\APP\pid.h

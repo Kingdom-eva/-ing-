@@ -330,6 +330,21 @@
           <WinNumber>1</WinNumber>
           <ItemText>-delta_pitch_torque</ItemText>
         </Ww>
+        <Ww>
+          <count>36</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>\\angle_clc\../angle_clcgroup/TASK/try_try.c\degree_set_pitch</ItemText>
+        </Ww>
+        <Ww>
+          <count>37</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>\\angle_clc\../angle_clcgroup/TASK/INS_Task.c\bmi088_offset_data</ItemText>
+        </Ww>
+        <Ww>
+          <count>38</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>\\angle_clc\../angle_clcgroup/TASK/try_try.c\degree_set_pitch</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>

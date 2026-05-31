@@ -19,8 +19,8 @@ extern fp32 INS_angle[3];//用来获取角度 单位：
 extern motor_measure_t motor_chassis[8];//用来获取速度 单位：rpm
 
 
-float kp_s_pitch=13.6f,ki_s_pitch=0.15f,kd_s_pitch=1.2f;//电机一pid速度环
-float kp_p_pitch=4.78f,ki_p_pitch=0.1f,kd_p_pitch=1.0f;//角度环
+float kp_s_pitch=250.0f,ki_s_pitch=0.0f,kd_s_pitch=20.0f;//电机一pid速度环
+float kp_p_pitch=3.38f,ki_p_pitch=0.07f,kd_p_pitch=0.02f;//角度环
 
 float kp_s_yaw=4.0f,ki_s_yaw=0.0f,kd_s_yaw=0.0f;//电机二pid
 float kp_p_yaw=6.5f,ki_p_yaw=0.1f,kd_p_yaw=1.5f;//角度环
@@ -45,6 +45,13 @@ uint8_t exit_flag = 0;//MODE标志按钮
 uint8_t rising_falling_flag;
 
 uint8_t check_songshou=0;
+
+float calculate(float angle)
+{
+	float I;
+	I=0.0117*angle*angle*angle+0.349*angle*angle+49.013*angle+735.2;
+	return I;
+}
 
 void Try_Try(void const * argument){		
 
@@ -84,7 +91,7 @@ DM4310_SetMode(3);
 	
 	float PID_p_yaw[3]={kp_p_yaw,ki_p_yaw,kd_p_yaw};
 	float PID_s_yaw[3]={kp_s_yaw,ki_s_yaw,kd_s_yaw};
-	PID_init(&motor_s_pitch,PID_POSITION,PID_s_pitch,750,100);
+	PID_init(&motor_s_pitch,PID_POSITION,PID_s_pitch,12000,2000);
 	PID_init(&motor_p_pitch,PID_POSITION,PID_p_pitch,450,80);
 	
 	PID_init(&motor_s_yaw,PID_POSITION,PID_s_pitch,200,80);
@@ -153,7 +160,7 @@ DM4310_SetMode(3);
 			PID_calc(&motor_s_yaw,speed_yaw,speed_set_yaw);
 
 //			delta_pitch_torque=small_pitch_enable(motor_s_pitch.out);
-			CAN_CMD_BASE(&hcan1,0x200,(motor_s_pitch.out*15),0,0,0);
+			CAN_CMD_BASE(&hcan1,0x200,(motor_s_pitch.out+calculate(INS_angle[1])),0,0,0);
 			
 			
 
@@ -195,10 +202,8 @@ DM4310_SetMode(3);
 			PID_calc(&motor_s_pitch,speed_pitch,speed_set_pitch);
 			PID_calc(&motor_s_yaw,speed_yaw,speed_set_yaw);
 			
-			CAN_CMD_BASE(&hcan1,0x200,(motor_s_pitch.out*15),0,0,0);
-			
-			
-
+//			CAN_CMD_BASE(&hcan1,0x200,(motor_s_pitch.out+calculate(INS_angle[1])),0,0,0);
+						
 			speed_set_yaw_s=(motor_p_yaw.out*0.4f*2.0f*PI_C)/60.0f;//speed_set_yaw:rpm   speed_set_yaw_s:rad/s
 			if(motor_p_yaw.out<1.2f&&motor_p_yaw.out>-1.2f)
 				speed_set_yaw_s=0;

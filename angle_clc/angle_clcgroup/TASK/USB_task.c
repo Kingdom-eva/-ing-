@@ -10,12 +10,16 @@
 #include "usbd_cdc_if.h"
 #include "try_try.h"
 #include "INS_Task.h"
+#include "pid.h"
 
 extern osThreadId USB_taskHandle;
 extern fp32 INS_angle_deg[3];
 extern float degree_set_pitch,degree_set_yaw;
 extern uint8_t mode;
-#define CH_COUNT 4
+extern  bmi088_real_data_t bmi088_real_data;
+extern  pid_type_def motor_s_pitch,motor_p_pitch;
+
+#define CH_COUNT 6
 
 uint8_t checkout=0;
 struct Frame
@@ -91,7 +95,8 @@ void USB_Task(void const * argument)
 	sine_frame.fdata[1]=INS_angle_deg[1];//pitch÷·
 	sine_frame.fdata[2]=degree_set_yaw;
 	sine_frame.fdata[3]=INS_angle_deg[0];//yaw÷·
-		
+	sine_frame.fdata[4]=bmi088_real_data.gyro[0];
+	sine_frame.fdata[5]=motor_p_pitch.out;
 		
 	sendmessage.roll=INS_angle_deg[2];
 	sendmessage.pitch=INS_angle_deg[1];
